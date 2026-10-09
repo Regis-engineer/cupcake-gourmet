@@ -1,0 +1,1 @@
+document.querySelectorAll('.flash').forEach(el=>{setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .5s';setTimeout(()=>el.remove(),500)},5000)});document.querySelectorAll('form').forEach(form=>form.addEventListener('submit',e=>{if(form.dataset.confirm && !confirm(form.dataset.confirm))e.preventDefault()}));
