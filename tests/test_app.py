@@ -37,13 +37,13 @@ def test_checkout_creates_order_and_payment(app):
     r=c.post('/checkout',data={'street':'Rua Teste','number':'10','city':'Brasilia','state':'DF','zip_code':'70000-000','payment':'PIX'},follow_redirects=True)
     assert r.status_code==200; assert b'Pedido criado' in r.data
     with app.app_context():
-        o=Order.query.one(); assert o.total == 10; assert o.status=='Recebido'; assert Payment.query.one().method=='PIX'; assert Product.query.get(1).stock==2
+        o=Order.query.one(); assert o.total == 10; assert o.status=='Recebido'; assert Payment.query.one().method=='PIX'; assert db.session.get(Product, 1).stock==2
 
 def test_admin_can_edit_product(app):
     c=app.test_client(); login(c,'admin@example.com','Admin123!')
     r=c.post('/admin/produto/1/editar',data={'name':'Cupcake Atualizado','description':'Nova descricao','price':'12.50','stock':'8','category_id':'1'},follow_redirects=True)
     assert r.status_code==200; assert b'Produto atualizado' in r.data
-    with app.app_context(): assert Product.query.get(1).name=='Cupcake Atualizado'; assert Product.query.get(1).stock==8
+    with app.app_context(): assert db.session.get(Product, 1).name=='Cupcake Atualizado'; assert db.session.get(Product, 1).stock==8
 
 def test_non_admin_forbidden(app):
     c=app.test_client(); login(c,'cliente@example.com','123456'); assert c.get('/admin').status_code==403

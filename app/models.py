@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from . import db, login_manager
@@ -50,7 +50,11 @@ class Order(db.Model):
     address_id = db.Column(db.Integer, db.ForeignKey("address.id"), nullable=True)
     status = db.Column(db.String(40), default="Recebido", nullable=False)
     total = db.Column(db.Numeric(10,2), default=0, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(
+    db.DateTime,
+    default=lambda: datetime.now(timezone.utc),
+    nullable=False
+)
     address = db.relationship("Address")
     items = db.relationship("OrderItem", backref="order", lazy=True, cascade="all, delete-orphan")
     payment = db.relationship("Payment", backref="order", uselist=False, cascade="all, delete-orphan")
@@ -69,4 +73,8 @@ class Payment(db.Model):
     method = db.Column(db.String(40), nullable=False)
     status = db.Column(db.String(40), default="Simulado", nullable=False)
     transaction_code = db.Column(db.String(80), nullable=False)
-    paid_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    paid_at = db.Column(
+    db.DateTime,
+    default=lambda: datetime.now(timezone.utc),
+    nullable=False
+)
