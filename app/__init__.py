@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -20,10 +21,29 @@ def create_app(test_config=None):
     with app.app_context():
         from .models import User, Category, Product
         db.create_all()
-        if not User.query.filter_by(email="admin@cupcakelocal.test").first():
-            admin = User(name="Administrador", email="admin@cupcakelocal.test", is_admin=True)
-            admin.set_password("Admin123!")
-            db.session.add(admin)
+        admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+        admin_password = os.getenv("ADMIN_PASSWORD", "")
+
+        if bool(admin_email) != bool(admin_password):
+            raise RuntimeError(
+                "Configure ADMIN_EMAIL e ADMIN_PASSWORD juntos."
+            )
+
+        if admin_email and admin_password:
+            admin = User.query.filter_by(email=admin_email).first()
+
+            if admin is None:
+                admin = User(
+                    name=os.getenv("ADMIN_NAME", "Administrador"),
+                    email=admin_email,
+                    is_admin=True
+                )
+                admin.set_password(admin_password)
+                db.session.add(admin)
+            elif not admin.is_admin:
+                raise RuntimeError(
+                    "ADMIN_EMAIL já pertence a uma conta não administrativa."
+                )
         if Category.query.count() == 0:
             cats = [Category(name="Clássicos"), Category(name="Especiais"), Category(name="Frutas")]
             db.session.add_all(cats)
